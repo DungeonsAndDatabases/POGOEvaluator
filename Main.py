@@ -20,7 +20,7 @@ try:
         host=host,
         port=port
     )
-    print("the dragon is dead")
+    print("Connection succesful")
     connection.close()
 except pg.OperationalError as e:
     print("Failed to connect to the database.")
@@ -28,7 +28,6 @@ except pg.OperationalError as e:
 except UnicodeDecodeError as e:
     print("Unicode decode error occurred.")
     print(f"Error: {e}")
-    print(f"Problematic string position: {e.start} to {e.end}")
 except Exception as e:
     print("An unexpected error occurred.")
     print(f"Error: {e}")
