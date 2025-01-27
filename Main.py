@@ -7,7 +7,7 @@ import psycopg2 as pg
 # Directly using credentials as strings
 dbname = "ahuehuete_pc"
 user = "postgres"
-password = "5ejberag3MytWLn"
+password = ""
 host = "localhost"
 port = "5432"
 
