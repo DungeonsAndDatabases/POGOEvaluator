@@ -1,4 +1,6 @@
 import psycopg2 as pg  
+import pandas as pd
+import numpy as np
 
 def TableSetup (connection):
     try:
@@ -9,7 +11,7 @@ def TableSetup (connection):
                 pokemon_name VARCHAR(50),
                 attack_iv SMALLINT CHECK(attack_iv BETWEEN 0 AND 15),
                 defence_iv SMALLINT CHECK(defence_iv BETWEEN 0 AND 15),
-                hp_iv SMALLINT CHECK(hp_iv BETWEEN 0 AND 15),
+                hp_iv SMALLINT CHECK(hp_iv BETWEEN 0 AND 15)
             );
             CREATE TABLE IF NOT EXISTS TypeChart (
                 id SERIAL PRIMARY KEY,
@@ -32,33 +34,88 @@ def TableSetup (connection):
                 Psychic NUMERIC(3, 2) CHECK (Psychic IN (0, 0.25, 0.5, 1, 2, 4)),
                 Rock NUMERIC(3, 2) CHECK (Rock IN (0, 0.25, 0.5, 1, 2, 4)),
                 Steel NUMERIC(3, 2) CHECK (Steel IN (0, 0.25, 0.5, 1, 2, 4)),
-                Water NUMERIC(3, 2) CHECK (Water IN (0, 0.25, 0.5, 1, 2, 4)),
+                Water NUMERIC(3, 2) CHECK (Water IN (0, 0.25, 0.5, 1, 2, 4))
             );
             """
         cursor.execute(create_table_query)
         connection.commit()
-        types = ['None', 'Bug', 'Dark', 'Dragon', 'Electric', 'Fairy', 'Fighting', 'Fire', 'Flying', 'Ghost', 'Grass', 'Ground', 'Ice', 'Normal', 'Poison', 'Psychic', 'Rock', 'Steel', 'Water']
-
-        interactions = {
-            'Bug':      {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 0.5, 'Fire': 2, 'Flying': 2, 'Ghost': 1, 'Grass': 0.5, 'Ground': 0.5, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 2, 'Steel': 1, 'Water': 1},
-            'Dark':     {'Bug': 2, 'Dark': 0.5, 'Dragon': 1, 'Electric': 1, 'Fairy': 2, 'Fighting': 2, 'Fire': 1, 'Flying': 1, 'Ghost': 0.5, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 0, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Dragon':   {'Bug': 1, 'Dark': 1, 'Dragon': 2, 'Electric': 0.5, 'Fairy': 2, 'Fighting': 1, 'Fire': 0.5, 'Flying': 1, 'Ghost': 1, 'Grass': 0.5, 'Ground': 1, 'Ice': 2, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 0.5},
-            'Electric': {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 0.5, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 0.5, 'Ghost': 1, 'Grass': 1, 'Ground': 2, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 0.5, 'Water': 1},
-            'Fairy':    {'Bug': 0.5, 'Dark': 0.5, 'Dragon': 0, 'Electric': 1, 'Fairy': 1, 'Fighting': 0.5, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 2, 'Psychic': 1, 'Rock': 1, 'Steel': 2, 'Water': 1},
-            'Fighting': {'Bug': 0.5, 'Dark': 0.5, 'Dragon': 1, 'Electric': 1, 'Fairy': 2, 'Fighting': 1, 'Fire': 1, 'Flying': 2, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 2, 'Rock': 0.5, 'Steel': 1, 'Water': 1},
-            'Fire':     {'Bug': 0.5, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 0.5, 'Fighting': 1, 'Fire': 0.5, 'Flying': 1, 'Ghost': 1, 'Grass': 0.5, 'Ground': 2, 'Ice': 0.5, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 2, 'Steel': 0.5, 'Water': 2},
-            'Flying':   {'Bug': 0.5, 'Dark': 1, 'Dragon': 1, 'Electric': 2, 'Fairy': 1, 'Fighting': 0.5, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 0.5, 'Ground': 0, 'Ice': 2, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 2, 'Steel': 1, 'Water': 1},
-            'Ghost':    {'Bug': 0.5, 'Dark': 2, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 0, 'Fire': 1, 'Flying': 1, 'Ghost': 2, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 0, 'Poison': 0.5, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Grass':    {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Ground':   {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Ice':      {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Normal':   {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Poison':   {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Psychic':  {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Rock':     {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Steel':    {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
-            'Water':    {'Bug': 1, 'Dark': 1, 'Dragon': 1, 'Electric': 1, 'Fairy': 1, 'Fighting': 1, 'Fire': 1, 'Flying': 1, 'Ghost': 1, 'Grass': 1, 'Ground': 1, 'Ice': 1, 'Normal': 1, 'Poison': 1, 'Psychic': 1, 'Rock': 1, 'Steel': 1, 'Water': 1},
+        types = ['Bug', 'Dark', 'Dragon', 'Electric', 'Fairy', 'Fighting', 'Fire', 'Flying', 'Ghost', 'Grass', 'Ground', 'Ice', 'Normal', 'Poison', 'Psychic', 'Rock', 'Steel', 'Water']
+        print(f"{len(types)} types in the list")
+        #this one creates a list of tuples with all the possible combinations of types by running a nested loop and skipping the ones that have already been added. but using a list comprehension
+        dual_types = [(types[i], types[j]) for i in range(len(types)) for j in range(i, len(types))]
+        print (f"{len(dual_types)} dual types in the total") #must be 171 dual types total
+        type_chart = pd.DataFrame(
+            np.ones((len(dual_types), len(types))),
+            index=pd.MultiIndex.from_tuples(dual_types, names=['Type1', 'Type2']),
+            columns=types
+        )
+        # type effectiveness, attacker type is the index, defender type is the column
+        super_effective = {
+            'Bug': ['Grass', 'Psychic', 'Dark'],
+            'Dark': ['Ghost', 'Psychic'],
+            'Dragon': ['Dragon'],
+            'Electric': ['Flying', 'Water'],
+            'Fairy': ['Dragon', 'Dark', 'Fighting'],
+            'Fighting': ['Normal', 'Ice', 'Rock', 'Dark', 'Steel'],
+            'Fire': ['Bug', 'Grass', 'Ice', 'Steel'],
+            'Flying': ['Bug', 'Fighting', 'Grass'],
+            'Ghost': ['Ghost', 'Psychic'],
+            'Grass': ['Ground', 'Rock', 'Water'],
+            'Ground': ['Electric', 'Fire', 'Poison', 'Rock', 'Steel'],
+            'Ice': ['Dragon', 'Flying', 'Grass', 'Ground'],
+            'Poison': ['Fairy', 'Grass'],
+            'Psychic': ['Fighting', 'Poison'],
+            'Rock': ['Bug', 'Fire', 'Flying', 'Ice'],
+            'Steel': ['Fairy', 'Ice', 'Rock'],
+            'Water': ['Fire', 'Ground', 'Rock']
         }
+        not_very_effective = {
+            'Bug': ['Fighting', 'Fire', 'Flying', 'Ghost', 'Poison', 'Steel', 'Fairy'],
+            'Dark': ['Dark', 'Fairy', 'Fighting'],
+            'Dragon': ['Steel'],
+            'Electric': ['Dragon', 'Electric', 'Grass'],
+            'Fairy': ['Fire', 'Poison', 'Steel'],
+            'Fighting': ['Bug', 'Fairy', 'Flying', 'Poison', 'Psychic'],
+            'Fire': ['Dragon', 'Fire', 'Rock', 'Water'],
+            'Flying': ['Electric', 'Rock', 'Steel'],
+            'Ghost': ['Dark'],
+            'Grass': ['Bug', 'Dragon', 'Fire', 'Flying', 'Grass', 'Poison', 'Steel'],
+            'Ground': ['Bug', 'Grass'],
+            'Ice': ['Fire', 'Ice', 'Steel', 'Water'],
+            'Normal': ['Rock', 'Steel'],
+            'Poison': ['Ghost', 'Ground', 'Poison', 'Rock'],
+            'Psychic': ['Psychic', 'Steel'],
+            'Rock': ['Fighting', 'Ground', 'Steel'],
+            'Steel': ['Electric', 'Fire', 'Steel', 'Water'],
+            'Water': ['Dragon', 'Grass', 'Water']
+        }
+        no_effect = {
+            'Normal': ['Ghost'],
+            'Fighting': ['Ghost'],
+            'Flying': ['Ground'],
+            'Poison': ['Steel'],
+            'Ground': ['Flying'],
+            'Ghost': ['Normal', 'Psychic'],
+            'Electric': ['Ground'],
+            'Psychic': ['Dark'],
+            'Dragon': ['Fairy']
+        }
+
+        # Update the DataFrame
+        def update_chart(effectiveness_dict, value):
+            for attacker, targets in effectiveness_dict.items():
+                for target in targets:
+                    type_chart.loc[(attacker, slice(None)), target] = value
+                    type_chart.loc[(slice(None), attacker), target] *= value
+                    type_chart.at[(attacker, attacker), target] = value
+
+        # Apply updates
+        update_chart(super_effective, 2)
+        update_chart(not_very_effective, 0.5)
+        update_chart(no_effect, 0)
+
+        # Display the updated DataFrame
+        print(type_chart)
         cursor.execute(create_table_query)
         connection.commit()
         cursor.close()
