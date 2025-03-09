@@ -105,18 +105,31 @@ def TableSetup (connection):
         def update_chart(effectiveness_dict, value):
             for attacker, targets in effectiveness_dict.items():
                 for target in targets:
-                    type_chart.loc[(attacker, slice(None)), target] = value
-                    type_chart.loc[(slice(None), attacker), target] *= value
-                    type_chart.at[(attacker, attacker), target] = value
+                    type_chart.loc[(target, slice(None)), attacker] = value
+                    type_chart.loc[(slice(None), target), attacker] *= value
+                    type_chart.at[(target, target), attacker] = value
 
         # Apply updates
         update_chart(super_effective, 2)
         update_chart(not_very_effective, 0.5)
         update_chart(no_effect, 0)
-
+        #insert dataframe into the table
+        for index, row in type_chart.iterrows():
+            # Combine index and row values into a single list
+            values = list(index) + list(row)
+            # Format the values with single quotes and join them with commas
+            formatted_values = ", ".join(["'{}'".format(i) for i in values])
+            cursor.execute(
+                """
+                INSERT INTO TypeChart (type1, type2,
+                Bug, Dark, Dragon, Electric, Fairy,
+                Fighting, Fire, Flying, Ghost, Grass,
+                Ground, Ice, Normal, Poison, Psychic, Rock, Steel, Water) 
+                VALUES ({});
+                """.format(formatted_values)
+            )
         # Display the updated DataFrame
         print(type_chart)
-        cursor.execute(create_table_query)
         connection.commit()
         cursor.close()
     except Exception as e:
