@@ -1,6 +1,7 @@
 import psycopg2 as pg  
 import pandas as pd
 import numpy as np
+import requests
 
 def TableSetup (connection):
     try:
@@ -134,5 +135,15 @@ def TableSetup (connection):
         cursor.close()
     except Exception as e:
         print(f"Error: {e}")
+
+def data_fetching ():
+    url = "https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        
+    else:
+        print("Failed to fetch data.")
+
 if __name__ == "__main__":
     TableSetup()
