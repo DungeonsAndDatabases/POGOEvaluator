@@ -136,15 +136,41 @@ def TableSetup (connection):
     except Exception as e:
         print(f"Error: {e}")
 
-def data_fetching ():
+def data_fetching():
     url = "https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0"
     response = requests.get(url)
+    
     if response.status_code == 200:
-        data = response.json()
-        return data
+        pokemon_list = response.json()['results']
+        all_pokemon_data = []
+        i = 1
+        for entry in pokemon_list:
+            endpoint = entry['url']
+            response = requests.get(endpoint)
+            print (f"{i/1302 * 100:.2f}% done")
+            i += 1
+            if response.status_code == 200:
+                data = response.json()
+                pokemon_stats = {
+                    'name': data['name'],
+                    'id': data['id'],
+                    'height': data['height'],
+                    'weight': data['weight'],
+                    'stats': {stat['stat']['name']: stat['base_stat'] for stat in data['stats']},
+                    'types': [type_info['type']['name'] for type_info in data['types']],
+                    'url': endpoint
+                }
+                all_pokemon_data.append(pokemon_stats)
+            else:
+                print(f"Failed to fetch data for {entry['name']}")
+        
+        df = pd.DataFrame(all_pokemon_data)
+        df.to_csv('pokemon_data.csv', index=True)
+        print("Data fetched successfully")
+        return df
     else:
-        print("Failed to fetch data.")
+        print(f"Failed to fetch data. error code: {response.status_code}\n {response.text}")
         return None
 
 if __name__ == "__main__":
-    TableSetup()
+    data_fetching()

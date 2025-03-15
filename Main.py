@@ -1,14 +1,13 @@
 import os
-#dbname = os.environ['DB_NAME']
-
+import requests
 import psycopg2 as pg
 from DBHandler import TableSetup
-# Directly using credentials as strings
-dbname = "ahuehuete_pc"
-user = "postgres"
+# indirectly using credentials as strings from environment variables for security
+dbname = os.environ['DB_NAME']
+user = os.environ['postgreSQL_USER']
 password = os.environ['DB_PASSWORD']
-host = "localhost"
-port = "5432"
+host = os.environ['DB_HOST']
+port = os.environ['DB_PORT']
 
 try:
     print("Attempting to connect to the default database...")
