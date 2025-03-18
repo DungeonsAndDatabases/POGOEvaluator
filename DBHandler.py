@@ -3,6 +3,19 @@ import pandas as pd
 import numpy as np
 import requests
 
+def table_setup(connection):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+            """)
+        tables = cursor.fetchall()
+        print(f"Tables in the database: {tables}")
+    except Exception as e:
+        print(f"Error: {e}")
+
 def TableSetup (connection):
     try:
         cursor = connection.cursor()
@@ -129,9 +142,8 @@ def TableSetup (connection):
                 VALUES ({});
                 """.format(formatted_values)
             )
-        # Display the updated DataFrame
-        print(type_chart)
         connection.commit()
+        
         cursor.close()
     except Exception as e:
         print(f"Error: {e}")

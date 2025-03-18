@@ -1,7 +1,7 @@
 import os
 import requests
 import psycopg2 as pg
-from DBHandler import TableSetup
+from DBHandler import table_setup, TableSetup
 # indirectly using credentials as strings from environment variables for security
 dbname = os.environ['DB_NAME']
 user = os.environ['postgreSQL_USER']
@@ -19,7 +19,7 @@ try:
         port=port
     )
     print("Connection etablished")
-    TableSetup (connection)
+    table_setup (connection)
     connection.close()
 except pg.OperationalError as e:
     print("Failed to connect to the database.")
