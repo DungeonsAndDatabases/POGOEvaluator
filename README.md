@@ -19,4 +19,5 @@ Features it will have:
 
 How it works and why, given the insane amount of data it would need to balance and update just to check for 9300 potential pokemons in the pokemon go app alone, and because it is good practice, I will try to use a mix beteen relational databases and data processing to find the best pokemon each time. I chose PostgresSQL as my RDBMS and Python for this project.
 
-Currently using the PSYCOPG2 and Pandas modules, will update as they're needed in the project. 
+Currently using the PSYCOPG2 and Pandas modules, will update as they're needed in the project.
+shoutout to pokeapi for the best pokedex ever know to man.
