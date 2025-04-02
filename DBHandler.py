@@ -12,7 +12,59 @@ def table_setup(connection):
             WHERE table_schema = 'public'
             """)
         tables = cursor.fetchall()
-        print(f"Tables in the database: {tables}")
+        tables = [table[0] for table in tables]
+        if 'Moves' not in tables:
+            query = """
+                CREATE TABLE IF NOT EXISTS Moves (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(50),
+                    type VARCHAR(50),
+                    power SMALLINT CHECK(power BETWEEN 0 AND 100),
+                    energy SMALLINT CHECK(energy BETWEEN 0 AND 100),
+                    duration SMALLINT CHECK(duration BETWEEN 0 AND 100),
+                    damage_window SMALLINT CHECK(damage_window BETWEEN 0 AND 100)
+                );
+            """
+            cursor.execute(query)
+            connection.commit()
+        if 'GoStorage' not in tables:
+            query = """
+                CREATE TABLE IF NOT EXISTS GoStorage (
+                    id SERIAL PRIMARY KEY,
+                    pokemon_name VARCHAR(50),
+                    species_id SMALLINT,
+                    FOREIGN key (species_id) REFERENCES Pokedex(id),
+                    type SMALLINT,
+                    FOREIGN key (type) REFERENCES TypeChart(id),
+                    attack_iv SMALLINT CHECK(attack_iv BETWEEN 0 AND 15),
+                    defence_iv SMALLINT CHECK(defence_iv BETWEEN 0 AND 15),
+                    hp_iv SMALLINT CHECK(hp_iv BETWEEN 0 AND 15),
+                    level SMALLINT CHECK(level BETWEEN 1 AND 100),
+                    combat_power SMALLINT,
+                    is_shiny BOOLEAN DEFAULT FALSE,
+                    is_shadow BOOLEAN DEFAULT FALSE,
+                    weight SMALLINT,
+                    height SMALLINT,
+                    exhibition_score SMALLINT,
+                    is_xl BOOLEAN DEFAULT FALSE,
+                    is_xs BOOLEAN DEFAULT FALSE,
+                    is_favorite BOOLEAN DEFAULT FALSE,
+                    is_best_buddy BOOLEAN DEFAULT FALSE,
+                    has_costume INTEGER DEFAULT 0,
+                    FastMove SMALLINT,
+                    ChargeMove1 SMALLINT,
+                    ChargeMove2 SMALLINT,
+                    FOREIGN KEY (FastMove) REFERENCES Moves(id),
+                    FOREIGN KEY (ChargeMove1) REFERENCES Moves(id),
+                    FOREIGN KEY (ChargeMove2) REFERENCES Moves(id),
+                    caugth_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """
+        if 'TypeChart' not in tables:
+            TableSetup(connection) 
+        if 'Pokedex' not in tables:
+            TableSetup(connection) 
+        cursor.close()
     except Exception as e:
         print(f"Error: {e}")
 
@@ -20,13 +72,6 @@ def TableSetup (connection):
     try:
         cursor = connection.cursor()
         create_table_query = """
-            CREATE TABLE IF NOT EXISTS GoStorage (
-                id SERIAL PRIMARY KEY,
-                pokemon_name VARCHAR(50),
-                attack_iv SMALLINT CHECK(attack_iv BETWEEN 0 AND 15),
-                defence_iv SMALLINT CHECK(defence_iv BETWEEN 0 AND 15),
-                hp_iv SMALLINT CHECK(hp_iv BETWEEN 0 AND 15)
-            );
             CREATE TABLE IF NOT EXISTS TypeChart (
                 id SERIAL PRIMARY KEY,
                 type1 VARCHAR(8),
