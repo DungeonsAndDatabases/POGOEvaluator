@@ -199,6 +199,28 @@ def table_setup(connection):
                     
                 );
                 """ 
+            cursor.execute(query)
+            connection.commit()
+        if 'GoDex' not in tables:
+            query = """
+                CREATE TABLE IF NOT EXISTS GoDex (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(50),
+                    species_id SMALLINT,
+                    FOREIGN key (species_id) REFERENCES Pokedex(id),
+                    type SMALLINT,
+                    FOREIGN key (type) REFERENCES TypeChart(id),
+                    attack_stat SMALLINT,
+                    defence_stat SMALLINT,
+                    stamina_stat SMALLINT,
+                    average_weight SMALLINT,
+                    max_weight SMALLINT,
+                    average_height SMALLINT,
+                    max_height SMALLINT,
+                );
+            """
+            cursor.execute(query)
+            connection.commit()
         cursor.close()
     except Exception as e:
         print(f"Error: {e}")
